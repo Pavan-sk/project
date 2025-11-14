@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoPentest Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-shield-alt"></i> AutoPentest</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="#scans" class="nav-item" onclick="showSection('scans')">
+                <i class="fas fa-search"></i> Scans
+            </a>
+            <a href="#reports" class="nav-item" onclick="showSection('reports')">
+                <i class="fas fa-file-alt"></i> Reports
+            </a>
+            <a href="#targets" class="nav-item" onclick="showSection('targets')">
+                <i class="fas fa-bullseye"></i> Targets
+            </a>
+            <a href="#settings" class="nav-item" onclick="showSection('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="section-header">
+                <h1>Dashboard</h1>
+                <button class="btn btn-primary" onclick="showSection('scans')">
+                    <i class="fas fa-plus"></i> New Scan
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card critical">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="stat-critical">0</h3>
+                        <p>Critical Findings</p>
+                    </div>
+                </div>
+                <div class="stat-card high">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="stat-high">0</h3>
+                        <p>High Findings</p>
+                    </div>
+                </div>
+                <div class="stat-card medium">
+                    <div class="stat-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="stat-medium">0</h3>
+                        <p>Medium Findings</p>
+                    </div>
+                </div>
+                <div class="stat-card total">
+                    <div class="stat-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="stat-total">0</h3>
+                        <p>Total Findings</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Severity Distribution</h3>
+                    <canvas id="severityChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Phase Distribution</h3>
+                    <canvas id="phaseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-card">
+                <h3>Recent Activity</h3>
+                <div id="recent-activity" class="activity-list"></div>
+            </div>
+        </section>
+
+        <!-- Scans Section -->
+        <section id="scans" class="section">
+            <div class="section-header">
+                <h1>Scans</h1>
+            </div>
+
+            <!-- New Scan Form -->
+            <div class="card">
+                <h3>Start New Scan</h3>
+                <form id="scan-form" class="scan-form">
+                    <div class="form-group">
+                        <label>Target</label>
+                        <input type="text" id="scan-target" placeholder="example.com or 192.168.1.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phase</label>
+                        <select id="scan-phase">
+                            <option value="all">All Phases</option>
+                            <option value="recon">Reconnaissance Only</option>
+                            <option value="scan">Scanning Only</option>
+                            <option value="exploit">Exploitation Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Config</label>
+                        <input type="text" id="scan-config" value="sample_config.yaml">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start Scan
+                    </button>
+                </form>
+            </div>
+
+            <!-- Active Scans -->
+            <div class="card">
+                <h3>Active Scans</h3>
+                <div id="active-scans" class="scans-list"></div>
+            </div>
+
+            <!-- Scan History -->
+            <div class="card">
+                <h3>Scan History</h3>
+                <div id="scan-history" class="scans-list"></div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="section">
+            <div class="section-header">
+                <h1>Reports</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="exportReports('json')">
+                        <i class="fas fa-download"></i> Export JSON
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportReports('csv')">
+                        <i class="fas fa-file-csv"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <h3>Filters</h3>
+                <div class="filters">
+                    <select id="filter-phase" onchange="filterReports()">
+                        <option value="">All Phases</option>
+                        <option value="recon">Reconnaissance</option>
+                        <option value="scan">Scanning</option>
+                        <option value="exploit">Exploitation</option>
+                        <option value="post">Post-Exploitation</option>
+                    </select>
+                    <select id="filter-severity" onchange="filterReports()">
+                        <option value="">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                    <input type="text" id="filter-host" placeholder="Filter by host..." oninput="filterReports()">
+                </div>
+            </div>
+
+            <!-- Reports List -->
+            <div id="reports-list" class="reports-grid"></div>
+        </section>
+
+        <!-- Targets Section -->
+        <section id="targets" class="section">
+            <div class="section-header">
+                <h1>Targets</h1>
+                <button class="btn btn-primary" onclick="showAddTarget()">
+                    <i class="fas fa-plus"></i> Add Target
+                </button>
+            </div>
+            <div id="targets-list" class="targets-grid"></div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="section">
+            <div class="section-header">
+                <h1>Settings</h1>
+            </div>
+            <div class="card">
+                <h3>General Settings</h3>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <label>Auto-refresh interval (seconds)</label>
+                        <input type="number" id="refresh-interval" value="30" min="5">
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="auto-refresh" checked>
+                            Enable auto-refresh
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
+

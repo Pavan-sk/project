@@ -125,12 +125,8 @@ Repository = "https://github.com/Pavan-sk/autopentest.git"
 [project.scripts]
 autopentest = "autopentest.cli:main"
 
-[project.gui-scripts]
-autopentest-gui = "autopentest.gui:main"
-
 [project.entry-points."console_scripts"]
 autopentest = "autopentest.cli:main"
-autopentest-gui = "autopentest.gui:main"
 
 [project.entry-points."autopentest.plugins"]
 nmap = "autopentest.plugins.nmap:NmapPlugin"
