@@ -1,0 +1,281 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autopentest"
+version = "1.0.0"
+description = "Automated Penetration Testing Framework"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "AutoPentest Team", email = "team@autopentest.com"}
+]
+maintainers = [
+    {name = "Pavan-sk", email = "pavan@autopentest.com"}
+]
+keywords = [
+    "penetration-testing",
+    "security",
+    "automation",
+    "vulnerability-assessment",
+    "cybersecurity",
+    "ethical-hacking"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Security Professionals",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Internet :: WWW/HTTP :: Site Management",
+    "Topic :: System :: Networking :: Firewalls",
+    "Topic :: System :: Networking :: Monitoring",
+    "Topic :: System :: Networking :: Security",
+    "Topic :: System :: Operating System",
+    "Topic :: Utilities"
+]
+requires-python = ">=3.8"
+dependencies = [
+    "PyYAML>=6.0",
+    "requests>=2.28.0",
+    "jinja2>=3.1.0",
+    "colorama>=0.4.5",
+    "psutil>=5.9.0",
+    "lxml>=4.9.0",
+    "beautifulsoup4>=4.11.0",
+    "cryptography>=3.4.0",
+    "paramiko>=2.11.0",
+    "netaddr>=0.8.0",
+    "dnspython>=2.2.0",
+    "python-nmap>=0.7.0",
+    "pydantic>=1.10.0",
+    "rich>=12.0.0",
+    "click>=8.1.0",
+    "tabulate>=0.8.10",
+    "pyfiglet>=0.8.0",
+    "termcolor>=1.1.0",
+    "tqdm>=4.64.0",
+    "packaging>=21.0",
+    "typing-extensions>=4.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.8.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=0.991",
+    "pre-commit>=2.20.0",
+    "tox>=3.25.0",
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0"
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.8.0",
+    "pytest-asyncio>=0.20.0",
+    "pytest-xdist>=2.5.0",
+    "coverage>=6.0.0",
+    "factory-boy>=3.2.0",
+    "faker>=18.0.0"
+]
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "sphinx-autodoc-typehints>=1.12.0",
+    "myst-parser>=0.17.0",
+    "sphinx-copybutton>=0.5.0"
+]
+security = [
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+    "pip-audit>=2.4.0"
+]
+full = [
+    "autopentest[dev,test,docs,security]"
+]
+
+[project.urls]
+Homepage = "https://github.com/Pavan-sk/autopentest"
+Documentation = "https://autopentest.readthedocs.io"
+Repository = "https://github.com/Pavan-sk/autopentest.git"
+"Bug Tracker" = "https://github.com/Pavan-sk/autopentest/issues"
+"Source Code" = "https://github.com/Pavan-sk/autopentest"
+"Security Policy" = "https://github.com/Pavan-sk/autopentest/security/policy"
+"Code of Conduct" = "https://github.com/Pavan-sk/autopentest/blob/main/CODE_OF_CONDUCT.md"
+"Contributing Guide" = "https://github.com/Pavan-sk/autopentest/blob/main/CONTRIBUTING.md"
+"Changelog" = "https://github.com/Pavan-sk/autopentest/blob/main/CHANGELOG.md"
+"Download" = "https://pypi.org/project/autopentest/#files"
+"PyPI" = "https://pypi.org/project/autopentest/"
+
+[project.scripts]
+autopentest = "autopentest.cli:main"
+
+[project.gui-scripts]
+autopentest-gui = "autopentest.gui:main"
+
+[project.entry-points."console_scripts"]
+autopentest = "autopentest.cli:main"
+autopentest-gui = "autopentest.gui:main"
+
+[project.entry-points."autopentest.plugins"]
+nmap = "autopentest.plugins.nmap:NmapPlugin"
+amass = "autopentest.plugins.amass:AmassPlugin"
+theharvester = "autopentest.plugins.theharvester:TheHarvesterPlugin"
+nikto = "autopentest.plugins.nikto:NiktoPlugin"
+sqlmap = "autopentest.plugins.sqlmap:SQLMapPlugin"
+xsstrike = "autopentest.plugins.xsstrike:XSStrikePlugin"
+gobuster = "autopentest.plugins.gobuster:GobusterPlugin"
+metasploit = "autopentest.plugins.metasploit:MetasploitPlugin"
+hydra = "autopentest.plugins.hydra:HydraPlugin"
+
+[tool.setuptools]
+packages = ["autopentest"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+autopentest = [
+    "templates/*.j2",
+    "templates/css/*.css",
+    "scripts/*.sh",
+    "*.yaml",
+    "*.yml"
+]
+
+[tool.setuptools.exclude-package-data]
+autopentest = [
+    "tests/*",
+    "docs/*",
+    ".github/*",
+    "*.md",
+    "*.txt",
+    "*.toml",
+    "*.cfg"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "autopentest.__version__"}
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["autopentest"]
+known_third_party = [
+    "requests", "yaml", "jinja2", "colorama", "psutil",
+    "lxml", "bs4", "cryptography", "paramiko", "netaddr",
+    "dns", "nmap", "pydantic", "rich", "click", "tabulate",
+    "pyfiglet", "termcolor", "tqdm", "packaging"
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".eggs",
+    "*.egg-info"
+]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "security: marks tests as security-related",
+    "network: marks tests that require network access"
+]
+
+[tool.coverage.run]
+source = ["autopentest"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/env/*",
+    "*/\.venv/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs"]
+skips = ["B101", "B601"]
+
+[tool.safety]
+output = "text"
+full-report = true
+
+[tool.pip-audit]
+format = "json"
+output = "pip-audit-report.json"

@@ -1,0 +1,971 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AutoPentest — Security Analysis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      min-height: 100vh;
+      padding: 12px;
+    }
+    #app {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+      max-width: 1600px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    #header h1 { font-size: 28px; margin-bottom: 4px; }
+    #header p { font-size: 12px; opacity: 0.9; }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      background: #fafafa;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { background: #f0f0f0; }
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: white;
+    }
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .tab-content.active { display: flex; flex-direction: column; }
+    #commands-panel { gap: 16px; }
+    .cmd-group {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .cmd-group h3 {
+      font-size: 14px;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    .cmd-group p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .cmd-btn {
+      width: 100%;
+      padding: 10px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .cmd-btn:hover { background: #5568d3; }
+    .cmd-btn:disabled { background: #ccc; cursor: not-allowed; }
+    #cmd-output {
+      background: #1e1e1e;
+      color: #0f0;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      display: none;
+    }
+    #cmd-output.active { display: block; }
+    .host-selector {
+      background: #f0f7ff;
+      border: 1px solid #667eea;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .host-selector.active { display: block; }
+    .host-selector h3 {
+      font-size: 13px;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    .host-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .host-btn {
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #667eea;
+      color: #667eea;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .host-btn:hover { background: #f0f7ff; }
+    .host-btn.selected { background: #667eea; color: white; }
+    .reports-layout { display: flex; gap: 16px; }
+    #left-panel { width: 280px; display: flex; flex-direction: column; gap: 12px; }
+    #right-panel { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .panel {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    #reports-list { list-style: none; }
+    #reports-list li {
+      padding: 8px;
+      background: white;
+      border: 1px solid #ddd;
+      margin-bottom: 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid #667eea;
+      font-size: 12px;
+    }
+    #reports-list li:hover { background: #f0f0f0; }
+    #reports-list li.selected { background: #e8eaf6; font-weight: bold; }
+    #report-view { display: flex; gap: 12px; }
+    .view-panel { flex: 1; min-width: 0; }
+    pre {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      overflow-y: auto;
+      max-height: 300px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    #ai-explain { background: #f0f7ff; border-left: 3px solid #667eea; }
+    #qa-section { display: flex; flex-direction: column; gap: 12px; }
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: Arial;
+      resize: vertical;
+      min-height: 60px;
+    }
+    .btn-group { display: flex; gap: 8px; }
+    button {
+      flex: 1;
+      padding: 10px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    button:hover { background: #5568d3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .tool-group {
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .tool-group h3 {
+      font-size: 14px;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+    .tool-group p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .tool-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .tool-btn {
+      width: 100%;
+      padding: 10px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .tool-btn:hover { background: #5568d3; }
+    .tool-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .tool-results {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 16px;
+      display: none;
+    }
+    .tool-results.active { display: block; }
+    .tool-results h3 {
+      color: #667eea;
+      font-size: 13px;
+      margin-bottom: 8px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+    .result-section {
+      margin-bottom: 12px;
+    }
+    .result-section h4 {
+      font-size: 12px;
+      color: #333;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    .result-content {
+      background: #f5f5f5;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 250px;
+      overflow-y: auto;
+      border-left: 3px solid #667eea;
+    }
+    .ai-analysis {
+      background: #f0f7ff;
+      border-left: 3px solid #667eea;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="header">
+      <h1>🔒 Security Analysis Platform</h1>
+      <p>Analyze vulnerabilities, view reports, and get AI-powered insights</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab-btn" data-tab="reports">📋 Reports & Analysis</button>
+      <button class="tab-btn" data-tab="commands">⚙️ Tools</button>
+      <button class="tab-btn" data-tab="export">📥 Export</button>
+      <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div id="dashboard" class="tab-content active">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div class="panel">
+          <div class="panel-header">📈 Total Findings</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #667eea;" id="stat-total">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🔴 Critical</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #d32f2f;" id="stat-critical">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🟠 High</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #f57c00;" id="stat-high">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🟡 Medium</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #fbc02d;" id="stat-medium">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🔵 Low</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #1976d2;" id="stat-low">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">🏠 Unique Hosts</div>
+          <div class="panel-body" style="text-align: center; padding: 30px;">
+            <div style="font-size: 36px; font-weight: bold; color: #667eea;" id="stat-hosts">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top: 16px;">
+        <div class="panel-header">🎯 Hosts Overview</div>
+        <div class="panel-body">
+          <ul id="stats-hosts-list" style="list-style: none;"></ul>
+          <div id="host-detail" style="display: none; margin-top: 16px; padding: 16px; background: #f0f7ff; border-radius: 8px; border-left: 3px solid #667eea;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 id="host-detail-name" style="color: #667eea; margin: 0;"></h3>
+              <button id="close-host-detail" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Close</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
+              <div style="background: white; padding: 12px; border-radius: 4px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #667eea;" id="host-total">0</div>
+                <div style="font-size: 11px; color: #666;">Total Findings</div>
+              </div>
+              <div style="background: white; padding: 12px; border-radius: 4px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #d32f2f;" id="host-critical">0</div>
+                <div style="font-size: 11px; color: #666;">Critical</div>
+              </div>
+              <div style="background: white; padding: 12px; border-radius: 4px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #f57c00;" id="host-high">0</div>
+                <div style="font-size: 11px; color: #666;">High</div>
+              </div>
+              <div style="background: white; padding: 12px; border-radius: 4px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold; color: #fbc02d;" id="host-medium">0</div>
+                <div style="font-size: 11px; color: #666;">Medium</div>
+              </div>
+            </div>
+
+            <div style="background: white; padding: 12px; border-radius: 4px; margin-bottom: 12px;">
+              <div style="font-size: 12px; margin-bottom: 8px;">
+                <strong>Risk Score:</strong>
+                <div style="width: 100%; height: 20px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 4px;">
+                  <div id="host-risk-bar" style="height: 100%; background: linear-gradient(90deg, #4caf50, #fbc02d, #f57c00, #d32f2f); width: 0%;"></div>
+                </div>
+                <div id="host-risk-score" style="font-size: 11px; color: #666; margin-top: 4px;">0/100</div>
+              </div>
+            </div>
+
+            <div style="background: white; padding: 12px; border-radius: 4px;">
+              <h4 style="margin: 0 0 8px 0; color: #333; font-size: 12px;">Quick Actions:</h4>
+              <button onclick="viewHostFindings()" style="width: 100%; padding: 8px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-bottom: 6px; font-weight: bold;">📋 View All Findings</button>
+              <button onclick="downloadHostReport()" style="width: 100%; padding: 8px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-bottom: 6px; font-weight: bold;">📥 Download Report</button>
+              <button onclick="generateRemediationPlan()" style="width: 100%; padding: 8px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">🔧 Remediation Plan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Tab (existing) -->
+    <div id="reports" class="tab-content">
+      <div class="host-selector" id="host-selector">
+        <h3>🏠 Select Host:</h3>
+        <div class="host-buttons" id="host-buttons"></div>
+      </div>
+
+      <div class="reports-layout">
+        <div id="left-panel">
+          <div class="panel">
+            <div class="panel-header">📄 Findings</div>
+            <div class="panel-body">
+              <input id="pattern" placeholder="glob pattern (**./*.json)" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:12px; margin-bottom:8px;" value="**/*.json" />
+              <button id="refresh" style="width:100%;">🔄 Refresh</button>
+              <ul id="reports-list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="right-panel">
+          <div id="report-view"></div>
+          <div id="qa-section" class="panel" style="flex: 0 0 220px;">
+            <div class="panel-header">💡 Ask Questions</div>
+            <div class="panel-body">
+              <textarea id="question" placeholder="Ask about this finding..."></textarea>
+              <div class="btn-group">
+                <button id="ask">📝 Get Analysis</button>
+              </div>
+              <div id="answer" style="background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: 12px; min-height: 70px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands Tab (existing, renamed to Tools) -->
+    <div id="commands" class="tab-content">
+      <div id="commands-panel">
+        <h2 style="color: #667eea; margin-bottom: 16px;">⚡ Execute Security Tools</h2>
+        
+        <div id="tool-input-group">
+          <input type="text" id="target-host" class="tool-input" placeholder="Target Host (e.g., 192.168.1.1 or example.com)" value="192.168.1.1" />
+        </div>
+        
+        <div id="tool-buttons"></div>
+        
+        <div id="tool-results" class="tool-results">
+          <h3>📊 Tool Results & Analysis</h3>
+          
+          <div class="result-section">
+            <h4>🛠️ Tool Output:</h4>
+            <div id="tool-output-display" class="result-content"></div>
+          </div>
+          
+          <div class="result-section">
+            <h4>🧠 Security Analysis:</h4>
+            <div id="ai-analysis-display" class="ai-analysis"></div>
+          </div>
+          
+          <div class="result-section" style="margin-top: 16px;">
+            <h4>💬 Ask Follow-up Questions:</h4>
+            <textarea id="tool-question" placeholder="Ask about the tool results..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; min-height: 60px;"></textarea>
+            <button id="tool-ask-btn" style="width: 100%; margin-top: 8px; padding: 10px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Ask</button>
+            <div id="tool-answer" style="background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-size: 12px; margin-top: 8px; min-height: 60px; white-space: pre-wrap; word-wrap: break-word; display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Tab -->
+    <div id="export" class="tab-content">
+      <div style="max-width: 600px;">
+        <div class="panel">
+          <div class="panel-header">📥 Export Reports</div>
+          <div class="panel-body">
+            <h3 style="color: #667eea; margin-bottom: 16px;">Generate Report</h3>
+            
+            <div class="tool-group">
+              <h3>Full Security Report</h3>
+              <p>Export all findings as a comprehensive text report with AI analysis and recommendations.</p>
+              <button id="export-btn" class="tool-btn" onclick="exportReport()">Download Report</button>
+            </div>
+
+            <div class="tool-group">
+              <h3>JSON Export</h3>
+              <p>Export all findings in JSON format for integration with other tools.</p>
+              <button class="tool-btn" onclick="exportJSON()">Download JSON</button>
+            </div>
+
+            <div class="tool-group">
+              <h3>CSV Export</h3>
+              <p>Export findings as CSV for analysis in spreadsheet applications.</p>
+              <button class="tool-btn" onclick="exportCSV()">Download CSV</button>
+            </div>
+
+            <div style="margin-top: 20px; padding: 12px; background: #f0f7ff; border-radius: 4px; border-left: 3px solid #667eea;">
+              <strong>Export Status:</strong>
+              <p id="export-status" style="font-size: 12px; color: #666; margin-top: 8px;">Ready to export</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settings" class="tab-content">
+      <div style="max-width: 600px;">
+        <div class="panel">
+          <div class="panel-header">⚙️ Settings & Configuration</div>
+          <div class="panel-body">
+            <h3 style="color: #667eea; margin-bottom: 16px;">API Configuration</h3>
+            
+            <div class="tool-group">
+              <h3>API Key Status</h3>
+              <p id="api-key-status" style="font-size: 12px; color: #666;">Checking...</p>
+              <button class="tool-btn" onclick="testAPIConnection()">Test Connection</button>
+            </div>
+
+            <div class="tool-group">
+              <h3>Preferences</h3>
+              <label style="display: block; margin-bottom: 12px;">
+                <input type="checkbox" id="auto-refresh" checked /> Auto-refresh reports every 30 seconds
+              </label>
+              <label style="display: block; margin-bottom: 12px;">
+                <input type="checkbox" id="show-details" checked /> Show detailed remediation steps
+              </label>
+              <label style="display: block; margin-bottom: 12px;">
+                <input type="checkbox" id="enable-notifications" /> Enable desktop notifications
+              </label>
+            </div>
+
+            <div class="tool-group">
+              <h3>About</h3>
+              <p style="font-size: 12px; color: #666;">
+                <strong>AutoPentest Security Analysis Platform</strong><br/>
+                Version: 1.0.0<br/>
+                © 2025 Security Assessment Suite<br/>
+                <a href="#" style="color: #667eea;">Documentation</a> | 
+                <a href="#" style="color: #667eea;">Report Issue</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+const reportsList = document.getElementById("reports-list");
+const patternInput = document.getElementById("pattern");
+const refreshBtn = document.getElementById("refresh");
+const reportViewDiv = document.getElementById("report-view");
+const askBtn = document.getElementById("ask");
+const questionTA = document.getElementById("question");
+const answerDiv = document.getElementById("answer");
+const cmdButtonsDiv = document.getElementById("cmd-buttons");
+const cmdOutput = document.getElementById("cmd-output");
+const hostSelector = document.getElementById("host-selector");
+const hostButtonsDiv = document.getElementById("host-buttons");
+const tabs = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
+
+let selectedReport = null;
+let selectedHost = null;
+let allHostnames = [];
+
+// Tab switching
+tabs.forEach(tab => {
+  tab.onclick = () => {
+    const tabName = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove("active"));
+    tabContents.forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tabName).classList.add("active");
+    if (tabName === "commands") loadCommands();
+    if (tabName === "dashboard") loadDashboard();
+  };
+});
+
+async function fetchReports() {
+  const pattern = patternInput.value || "**/*.json";
+  let url = `/api/reports?pattern=${encodeURIComponent(pattern)}`;
+  if (selectedHost) {
+    url = `/api/reports-by-host?host=${encodeURIComponent(selectedHost)}&pattern=${encodeURIComponent(pattern)}`;
+  }
+  const res = await fetch(url);
+  const list = await res.json();
+  reportsList.innerHTML = "";
+  list.forEach(p => {
+    const li = document.createElement("li");
+    li.textContent = p.split("/").pop();
+    li.dataset.path = p;
+    li.onclick = () => selectReport(p);
+    reportsList.appendChild(li);
+  });
+}
+
+async function selectReport(path) {
+  selectedReport = path;
+  document.querySelectorAll("#reports-list li").forEach(li => li.classList.remove("selected"));
+  document.querySelector(`[data-path="${path}"]`).classList.add("selected");
+  
+  reportViewDiv.innerHTML = "<div style='text-align:center; color:#999;'>Loading...</div>";
+  answerDiv.textContent = "";
+  questionTA.value = "";
+
+  const res = await fetch(`/api/report?path=${encodeURIComponent(path)}`);
+  const data = await res.json();
+
+  const ai = data.ai_explanation || {};
+  const remediationList = (ai.remediation_steps || []).map((s, i) => `${i+1}. ${s}`).join("\n");
+  
+  reportViewDiv.innerHTML = `
+    <div class="view-panel">
+      <div class="panel">
+        <div class="panel-header">📊 Finding Details</div>
+        <div class="panel-body">
+          <pre><strong>Title:</strong> ${data.title || "(unknown)"}\n<strong>Severity:</strong> ${data.severity || "(unknown)"}\n<strong>Host:</strong> ${data.host || "(unknown)"}\n\n<strong>Description:</strong>\n${data.description || "(none)"}</pre>
+        </div>
+      </div>
+    </div>
+    <div class="view-panel">
+      <div class="panel">
+        <div class="panel-header">🧠 Analysis</div>
+        <div class="panel-body">
+          <pre id="ai-explain"><strong>Summary:</strong>\n${ai.summary || "(none)"}\n\n<strong>Impact:</strong>\n${ai.impact || "(none)"}\n\n<strong>Remediation Steps:</strong>\n${remediationList || "(none)"}</pre>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadCommands() {
+  const res = await fetch("/api/commands");
+  const data = await res.json();
+  const { commands, tools } = data;
+  
+  // Commands section removed - only load tools
+  
+  // Add tools
+  const toolButtonsDiv = document.getElementById("tool-buttons");
+  toolButtonsDiv.innerHTML = tools.map(tool => `
+    <div class="tool-group">
+      <h3>${tool.name}</h3>
+      <p>${tool.description}</p>
+      <button class="tool-btn" onclick="runTool('${tool.id}')">${tool.name}</button>
+    </div>
+  `).join("");
+}
+
+async function runCommand(cmdId) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  cmdOutput.textContent = "Executing...\n";
+  cmdOutput.classList.add("active");
+
+  try {
+    const res = await fetch("/api/run-command", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ command_id: cmdId })
+    });
+    const result = await res.json();
+    cmdOutput.textContent = `=== Output ===\n${result.stdout}\n${result.stderr ? "\n=== Errors ===\n" + result.stderr : ""}\n\n✅ Complete`;
+    
+    // Show hostname selector if hostnames are available
+    if (result.hostnames && result.hostnames.length > 0) {
+      allHostnames = result.hostnames;
+      hostButtonsDiv.innerHTML = result.hostnames.map(host => 
+        `<button class="host-btn" onclick="selectHostname('${host}')">${host}</button>`
+      ).join("");
+      hostSelector.classList.add("active");
+    }
+  } catch (e) {
+    cmdOutput.textContent = `❌ Error: ${e}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.original || "Run";
+  }
+}
+
+async function runTool(toolId) {
+  const targetHost = document.getElementById("target-host").value.trim();
+  if (!targetHost) return alert("Enter a target host");
+  
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  
+  const toolResults = document.getElementById("tool-results");
+  const toolOutputDisplay = document.getElementById("tool-output-display");
+  const aiAnalysisDisplay = document.getElementById("ai-analysis-display");
+  const toolAnswer = document.getElementById("tool-answer");
+  const toolQuestion = document.getElementById("tool-question");
+  
+  toolOutputDisplay.textContent = "Executing tool...";
+  aiAnalysisDisplay.textContent = "Generating analysis...";
+  toolResults.classList.add("active");
+  toolAnswer.style.display = "none";
+  toolQuestion.value = "";
+  
+  try {
+    const res = await fetch("/api/run-tool", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tool_id: toolId, target_host: targetHost })
+    });
+    const result = await res.json();
+    
+    if (result.success) {
+      toolOutputDisplay.textContent = result.tool_output;
+      aiAnalysisDisplay.textContent = result.ai_explanation;
+      
+      // Store for follow-up questions
+      window.currentToolResult = result;
+    } else {
+      toolOutputDisplay.textContent = `Error: ${result.error}`;
+      aiAnalysisDisplay.textContent = "";
+    }
+  } catch (e) {
+    toolOutputDisplay.textContent = `Error: ${e}`;
+    aiAnalysisDisplay.textContent = "";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = btn.dataset.original || "Run";
+  }
+}
+
+document.getElementById("tool-ask-btn").onclick = async () => {
+  if (!window.currentToolResult) return alert("Run a tool first");
+  const q = document.getElementById("tool-question").value.trim();
+  if (!q) return alert("Ask a question");
+  
+  const askBtn = document.getElementById("tool-ask-btn");
+  askBtn.disabled = true;
+  askBtn.textContent = "Analyzing...";
+  const toolAnswer = document.getElementById("tool-answer");
+  toolAnswer.textContent = "Processing...";
+  toolAnswer.style.display = "block";
+  
+  try {
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        is_tool_result: true,
+        tool_output: window.currentToolResult.tool_output,
+        ai_analysis: window.currentToolResult.ai_explanation,
+        question: q
+      })
+    });
+    const json = await res.json();
+    if (json.error) {
+      toolAnswer.textContent = `❌ ${json.error}`;
+    } else {
+      toolAnswer.textContent = json.answer;
+    }
+  } catch (e) {
+    toolAnswer.textContent = `❌ Error: ${e}`;
+  } finally {
+    askBtn.disabled = false;
+    askBtn.textContent = "Ask";
+  }
+};
+
+refreshBtn.onclick = fetchReports;
+askBtn.onclick = async () => {
+  if (!selectedReport) return alert("Select a finding first");
+  const q = questionTA.value.trim();
+  if (!q) return alert("Ask a question");
+  askBtn.disabled = true;
+  askBtn.textContent = "Analyzing...";
+  answerDiv.textContent = "Processing...";
+  try {
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: selectedReport, question: q })
+    });
+    const json = await res.json();
+    if (json.error) {
+      answerDiv.textContent = `❌ ${json.error}`;
+    } else {
+      answerDiv.textContent = json.answer;
+    }
+  } catch (e) {
+    answerDiv.textContent = `❌ Error: ${e}`;
+  } finally {
+    askBtn.disabled = false;
+    askBtn.textContent = "📝 Get Analysis";
+  }
+};
+
+async function loadDashboard() {
+  try {
+    const res = await fetch("/api/stats");
+    const stats = await res.json();
+    
+    document.getElementById("stat-total").textContent = stats.total_reports;
+    document.getElementById("stat-critical").textContent = stats.severity_counts.critical;
+    document.getElementById("stat-high").textContent = stats.severity_counts.high;
+    document.getElementById("stat-medium").textContent = stats.severity_counts.medium;
+    document.getElementById("stat-low").textContent = stats.severity_counts.low;
+    document.getElementById("stat-hosts").textContent = stats.unique_hosts;
+    
+    const hostsList = document.getElementById("stats-hosts-list");
+    hostsList.innerHTML = stats.hosts.map(h => `
+      <li style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 4px; cursor: pointer; border-left: 3px solid #667eea; transition: all 0.2s;" 
+          onmouseover="this.style.background='#f0f7ff'" 
+          onmouseout="this.style.background='white'"
+          onclick="showHostDetail('${h}')">
+        🏠 <strong>${h}</strong>
+      </li>
+    `).join("");
+  } catch (e) {
+    console.error("Error loading dashboard:", e);
+  }
+}
+
+async function showHostDetail(hostname) {
+  try {
+    const res = await fetch(`/api/host-stats/${encodeURIComponent(hostname)}`);
+    const data = await res.json();
+    
+    document.getElementById("host-detail-name").textContent = `Host: ${hostname}`;
+    document.getElementById("host-total").textContent = data.total_findings;
+    document.getElementById("host-critical").textContent = data.severity_counts.critical;
+    document.getElementById("host-high").textContent = data.severity_counts.high;
+    document.getElementById("host-medium").textContent = data.severity_counts.medium;
+    document.getElementById("host-risk-bar").style.width = data.risk_score + "%";
+    document.getElementById("host-risk-score").textContent = data.risk_score + "/100";
+    
+    // Store for later use
+    window.currentHostDetail = data;
+    
+    document.getElementById("host-detail").style.display = "block";
+  } catch (e) {
+    alert("Error loading host details: " + e);
+  }
+}
+
+document.getElementById("close-host-detail").onclick = () => {
+  document.getElementById("host-detail").style.display = "none";
+};
+
+async function viewHostFindings() {
+  if (!window.currentHostDetail) return alert("No host selected");
+  const hostname = window.currentHostDetail.hostname;
+  
+  // Switch to reports tab and filter by host
+  selectedHost = hostname;
+  document.querySelectorAll(".tab-btn")[1].click();
+  
+  // Update host selector buttons
+  const hostButtons = document.getElementById("host-buttons");
+  hostButtons.innerHTML = `<button class="host-btn selected" onclick="selectHostname('${hostname}')">${hostname}</button>`;
+  document.getElementById("host-selector").classList.add("active");
+  
+  await fetchReports();
+}
+
+async function downloadHostReport() {
+  if (!window.currentHostDetail) return alert("No host selected");
+  const hostname = window.currentHostDetail.hostname;
+  const findings = window.currentHostDetail.findings;
+  
+  let reportText = "=" * 80 + "\n";
+  reportText += `SECURITY REPORT FOR: ${hostname}\n`;
+  reportText += `Generated: ${new Date().toLocaleString()}\n`;
+  reportText += "=" * 80 + "\n\n";
+  
+  reportText += `Total Findings: ${findings.length}\n`;
+  reportText += `Critical: ${window.currentHostDetail.severity_counts.critical}\n`;
+  reportText += `High: ${window.currentHostDetail.severity_counts.high}\n`;
+  reportText += `Medium: ${window.currentHostDetail.severity_counts.medium}\n`;
+  reportText += `Low: ${window.currentHostDetail.severity_counts.low}\n\n`;
+  
+  findings.forEach((f, i) => {
+    reportText += "-".repeat(80) + "\n";
+    reportText += `[${i+1}] ${f.title}\n`;
+    reportText += `Severity: ${f.severity.toUpperCase()}\n`;
+    reportText += `${f.description}\n`;
+    if (f.ai_explanation) {
+      reportText += `\nAnalysis: ${f.ai_explanation.summary}\n`;
+    }
+    reportText += "\n";
+  });
+  
+  const blob = new Blob([reportText], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `report_${hostname}_${new Date().getTime()}.txt`;
+  a.click();
+}
+
+function generateRemediationPlan() {
+  if (!window.currentHostDetail) return alert("No host selected");
+  const hostname = window.currentHostDetail.hostname;
+  const findings = window.currentHostDetail.findings;
+  
+  // Sort by severity
+  const critical = findings.filter(f => f.severity.toLowerCase() === "critical");
+  const high = findings.filter(f => f.severity.toLowerCase() === "high");
+  const medium = findings.filter(f => f.severity.toLowerCase() === "medium");
+  
+  let plan = `REMEDIATION PLAN FOR: ${hostname}\n\n`;
+  
+  if (critical.length > 0) {
+    plan += "CRITICAL (Immediate Action Required):\n";
+    critical.forEach((f, i) => {
+      plan += `${i+1}. ${f.title}\n`;
+      if (f.ai_explanation && f.ai_explanation.remediation_steps) {
+        f.ai_explanation.remediation_steps.forEach(step => {
+          plan += `   - ${step}\n`;
+        });
+      }
+      plan += "\n";
+    });
+  }
+  
+  if (high.length > 0) {
+    plan += "\nHIGH (Within 1 Week):\n";
+    high.forEach((f, i) => {
+      plan += `${i+1}. ${f.title}\n`;
+    });
+    plan += "\n";
+  }
+  
+  if (medium.length > 0) {
+    plan += "\nMEDIUM (Within 1 Month):\n";
+    medium.forEach((f, i) => {
+      plan += `${i+1}. ${f.title}\n`;
+    });
+  }
+  
+  alert(plan);
+}
+
+// Update tab switching to load dashboard
+tabs.forEach(tab => {
+  tab.onclick = () => {
+    const tabName = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove("active"));
+    tabContents.forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tabName).classList.add("active");
+    
+    if (tabName === "commands") loadCommands();
+    if (tabName === "dashboard") loadDashboard();
+  };
+});
+
+// Load dashboard on startup
+window.onload = () => {
+  loadDashboard();
+  fetchReports();
+};
+</script>
+</body>
+</html>

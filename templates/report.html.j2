@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.project_name }} - Penetration Testing Report</title>
+    <link rel="stylesheet" href="css/report.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="report-header">
+            <div class="logo">
+                <h1>AutoPentest</h1>
+                <p>Automated Penetration Testing Framework</p>
+            </div>
+            <div class="report-info">
+                <h2>{{ report.project_name }}</h2>
+                <p class="report-date">
+                    <strong>Start Date:</strong> {{ report.start_time.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                    <strong>End Date:</strong> {{ report.end_time.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                    <strong>Duration:</strong> {{ ((report.end_time - report.start_time).total_seconds() / 3600) | round(2) }} hours
+                </p>
+            </div>
+        </header>
+
+        <!-- Executive Summary -->
+        <section class="executive-summary">
+            <h2>Executive Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-card critical">
+                    <h3>Critical</h3>
+                    <div class="count">{{ report.statistics.critical_count }}</div>
+                    <p>Findings</p>
+                </div>
+                <div class="summary-card high">
+                    <h3>High</h3>
+                    <div class="count">{{ report.statistics.high_count }}</div>
+                    <p>Findings</p>
+                </div>
+                <div class="summary-card medium">
+                    <h3>Medium</h3>
+                    <div class="count">{{ report.statistics.medium_count }}</div>
+                    <p>Findings</p>
+                </div>
+                <div class="summary-card low">
+                    <h3>Low</h3>
+                    <div class="count">{{ report.statistics.low_count }}</div>
+                    <p>Findings</p>
+                </div>
+                <div class="summary-card info">
+                    <h3>Info</h3>
+                    <div class="count">{{ report.statistics.info_count }}</div>
+                    <p>Findings</p>
+                </div>
+            </div>
+            
+            <div class="risk-score">
+                <h3>Overall Risk Score</h3>
+                <div class="score {{ report.get_risk_level() }}">
+                    {{ "%.1f"|format(report.calculate_risk_score()) }}
+                </div>
+                <p class="risk-description">
+                    {% if report.calculate_risk_score() >= 8.0 %}
+                        <strong>CRITICAL RISK</strong> - Immediate action required
+                    {% elif report.calculate_risk_score() >= 6.0 %}
+                        <strong>HIGH RISK</strong> - Urgent attention needed
+                    {% elif report.calculate_risk_score() >= 4.0 %}
+                        <strong>MEDIUM RISK</strong> - Attention required
+                    {% elif report.calculate_risk_score() >= 2.0 %}
+                        <strong>LOW RISK</strong> - Monitor and address
+                    {% else %}
+                        <strong>MINIMAL RISK</strong> - Good security posture
+                    {% endif %}
+                </p>
+            </div>
+        </section>
+
+        <!-- Targets -->
+        <section class="targets">
+            <h2>Targets Scanned</h2>
+            <div class="targets-list">
+                {% for target in report.targets %}
+                <div class="target-card">
+                    <h3>{{ target.host }}</h3>
+                    {% if target.ports %}
+                    <p><strong>Open Ports:</strong> {{ target.ports | join(', ') }}</p>
+                    {% endif %}
+                    {% if target.services %}
+                    <p><strong>Services:</strong> {{ target.services | join(', ') }}</p>
+                    {% endif %}
+                    {% if target.os_info %}
+                    <p><strong>OS:</strong> {{ target.os_info }}</p>
+                    {% endif %}
+                    <p><strong>Status:</strong> <span class="status {{ target.status }}">{{ target.status }}</span></p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Findings by Severity -->
+        {% for severity in ['critical', 'high', 'medium', 'low', 'info'] %}
+        {% set severity_findings = report.get_findings_by_severity(severity) %}
+        {% if severity_findings %}
+        <section class="findings-section {{ severity }}">
+            <h2>{{ severity.title() }} Severity Findings</h2>
+            {% for finding in severity_findings %}
+            <div class="finding-card">
+                <div class="finding-header">
+                    <h3>{{ finding.description }}</h3>
+                    <span class="severity-badge {{ finding.severity.value }}">{{ finding.severity.value.upper() }}</span>
+                </div>
+                <div class="finding-details">
+                    <p><strong>Host:</strong> {{ finding.host }}</p>
+                    {% if finding.port %}
+                    <p><strong>Port:</strong> {{ finding.port }}</p>
+                    {% endif %}
+                    {% if finding.service %}
+                    <p><strong>Service:</strong> {{ finding.service }}</p>
+                    {% endif %}
+                    {% if finding.cve %}
+                    <p><strong>CVE:</strong> <a href="https://nvd.nist.gov/vuln/detail/{{ finding.cve }}" target="_blank">{{ finding.cve }}</a></p>
+                    {% endif %}
+                    {% if finding.cvss_score %}
+                    <p><strong>CVSS Score:</strong> {{ "%.1f"|format(finding.cvss_score) }}</p>
+                    {% endif %}
+                    <p><strong>Evidence:</strong> {{ finding.evidence }}</p>
+                    {% if finding.references %}
+                    <p><strong>References:</strong></p>
+                    <ul>
+                        {% for ref in finding.references %}
+                        <li><a href="{{ ref }}" target="_blank">{{ ref }}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if finding.tags %}
+                    <div class="tags">
+                        {% for tag in finding.tags %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+        {% endfor %}
+
+        <!-- Findings by Type -->
+        <section class="findings-by-type">
+            <h2>Findings by Type</h2>
+            <div class="findings-chart">
+                {% for finding_type, count in report.statistics.findings_by_type.items() %}
+                <div class="chart-item">
+                    <div class="chart-label">{{ finding_type.replace('_', ' ').title() }}</div>
+                    <div class="chart-bar">
+                        <div class="chart-fill" style="width: {{ (count / report.statistics.total_findings * 100) | round(1) }}%"></div>
+                    </div>
+                    <div class="chart-count">{{ count }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Methodology -->
+        <section class="methodology">
+            <h2>Testing Methodology</h2>
+            <div class="methodology-grid">
+                <div class="methodology-phase">
+                    <h3>1. Reconnaissance</h3>
+                    <p>Passive and active information gathering including subdomain enumeration, port scanning, and service detection.</p>
+                </div>
+                <div class="methodology-phase">
+                    <h3>2. Vulnerability Scanning</h3>
+                    <p>Automated vulnerability assessment using industry-standard tools and custom checks.</p>
+                </div>
+                <div class="methodology-phase">
+                    <h3>3. Exploitation</h3>
+                    <p>Controlled exploitation attempts to validate identified vulnerabilities and assess impact.</p>
+                </div>
+                <div class="methodology-phase">
+                    <h3>4. Post-Exploitation</h3>
+                    <p>Assessment of potential lateral movement, privilege escalation, and data access.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations -->
+        <section class="recommendations">
+            <h2>Recommendations</h2>
+            <div class="recommendations-list">
+                {% if report.statistics.critical_count > 0 %}
+                <div class="recommendation critical">
+                    <h3>Immediate Actions (Critical)</h3>
+                    <ul>
+                        <li>Address all critical vulnerabilities within 24-48 hours</li>
+                        <li>Implement emergency patches and workarounds</li>
+                        <li>Consider temporary service shutdown for critical systems</li>
+                        <li>Notify stakeholders and incident response team</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if report.statistics.high_count > 0 %}
+                <div class="recommendation high">
+                    <h3>High Priority Actions</h3>
+                    <ul>
+                        <li>Address high-severity vulnerabilities within 1-2 weeks</li>
+                        <li>Implement security patches and configuration changes</li>
+                        <li>Review and update security policies</li>
+                        <li>Conduct security awareness training</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if report.statistics.medium_count > 0 %}
+                <div class="recommendation medium">
+                    <h3>Medium Priority Actions</h3>
+                    <ul>
+                        <li>Address medium-severity vulnerabilities within 1 month</li>
+                        <li>Implement security improvements and best practices</li>
+                        <li>Review access controls and user permissions</li>
+                        <li>Update security documentation</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="recommendation general">
+                    <h3>General Security Improvements</h3>
+                    <ul>
+                        <li>Implement regular security assessments and penetration testing</li>
+                        <li>Establish vulnerability management program</li>
+                        <li>Implement security monitoring and logging</li>
+                        <li>Develop incident response procedures</li>
+                        <li>Regular security training for staff</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Appendix -->
+        <section class="appendix">
+            <h2>Appendix</h2>
+            <div class="appendix-content">
+                <h3>Tools Used</h3>
+                <ul>
+                    <li>Nmap - Port scanning and service detection</li>
+                    <li>Amass - Subdomain enumeration</li>
+                    <li>TheHarvester - Email and subdomain discovery</li>
+                    <li>Nikto - Web vulnerability scanning</li>
+                    <li>SQLMap - SQL injection testing</li>
+                    <li>XSStrike - XSS vulnerability testing</li>
+                    <li>Gobuster - Directory and file enumeration</li>
+                    <li>Metasploit - Exploitation framework</li>
+                    <li>Hydra - Credential brute-forcing</li>
+                </ul>
+                
+                <h3>Report Generation</h3>
+                <p>This report was automatically generated by AutoPentest Framework v{{ version }} on {{ report.end_time.strftime('%Y-%m-%d %H:%M:%S') }}.</p>
+                
+                <h3>Disclaimer</h3>
+                <p>This penetration testing report is confidential and intended for authorized personnel only. The findings and recommendations are based on the testing conducted during the specified time period and may not reflect the current security posture of the target systems.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="report-footer">
+            <p>&copy; {{ report.end_time.year }} AutoPentest Framework. All rights reserved.</p>
+            <p>Generated by: {{ author }} | Contact: {{ email }}</p>
+        </footer>
+    </div>
+
+    <script>
+        // Add any interactive JavaScript functionality here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Expand/collapse finding details
+            const findingHeaders = document.querySelectorAll('.finding-header');
+            findingHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const details = this.nextElementSibling;
+                    details.style.display = details.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+            
+            // Add smooth scrolling for anchor links
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

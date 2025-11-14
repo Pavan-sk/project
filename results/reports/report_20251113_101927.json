@@ -1,0 +1,65 @@
+{
+  "project_name": "Sample Penetration Test",
+  "start_time": "2025-11-13T10:19:26.962014",
+  "end_time": "2025-11-13T10:19:27.839030",
+  "findings": [],
+  "targets": [
+    {
+      "host": "127.0.0.1",
+      "ip_address": null,
+      "domain": null,
+      "ports": [],
+      "services": {},
+      "os_info": null,
+      "urls": [],
+      "technologies": [],
+      "subdomains": [],
+      "status": "unknown",
+      "last_seen": "2025-11-13T10:19:27.838862",
+      "notes": "",
+      "tags": [],
+      "raw_data": {}
+    }
+  ],
+  "statistics": {
+    "total_findings": 0,
+    "findings_by_severity": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 0
+    },
+    "findings_by_phase": {
+      "recon": 0,
+      "scan": 0,
+      "exploit": 0,
+      "post": 0
+    },
+    "total_targets": 1
+  },
+  "version": "1.0.0",
+  "generated_by": "AutoPentest",
+  "generated_at": "2025-11-13T10:19:27.839131",
+  "summary": "",
+  "recommendations": [],
+  "methodology": [],
+  "scope": [],
+  "report_id": "APT_20251113_101927",
+  "client": null,
+  "tester": null,
+  "notes": "",
+  "ai_explanation": {
+    "summary": "This is a medium-severity finding: Unknown. ",
+    "impact": "Potential security risk classified as medium severity.",
+    "detailed_explanation": "The finding 'Unknown' has been identified in the assessment. Details are documented in the report. This requires immediate attention and proper remediation.",
+    "remediation_steps": [
+      "Apply security patches and updates.",
+      "Review security configurations and access controls.",
+      "Monitor systems for suspicious activity.",
+      "Document changes and validate fixes."
+    ],
+    "generated_by": "script: generate_ai_explanations.py",
+    "generated_at": "2025-11-14T09:16:35Z"
+  }
+}

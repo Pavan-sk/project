@@ -1,0 +1,14 @@
+Finding Type,Severity,Host,Port,Service,Description,Evidence,Recommendation,Phase
+FindingType.MISCONFIGURATION,Severity.MEDIUM,rnsit.ac.in,21,FTP,Service FTP is running on port 21 and may be vulnerable,"Service: FTP, Port: 21",Review FTP configuration and apply security patches,scan
+FindingType.MISCONFIGURATION,Severity.MEDIUM,rnsit.ac.in,23,Telnet,Service Telnet is running on port 23 and may be vulnerable,"Service: Telnet, Port: 23",Review Telnet configuration and apply security patches,scan
+FindingType.MISCONFIGURATION,Severity.MEDIUM,rnsit.ac.in,25,SMTP,Service SMTP is running on port 25 and may be vulnerable,"Service: SMTP, Port: 25",Review SMTP configuration and apply security patches,scan
+FindingType.MISCONFIGURATION,Severity.MEDIUM,rnsit.ac.in,110,POP3,Service POP3 is running on port 110 and may be vulnerable,"Service: POP3, Port: 110",Review POP3 configuration and apply security patches,scan
+FindingType.MISCONFIGURATION,Severity.MEDIUM,rnsit.ac.in,143,IMAP,Service IMAP is running on port 143 and may be vulnerable,"Service: IMAP, Port: 143",Review IMAP configuration and apply security patches,scan
+FindingType.DEFAULT_CREDENTIALS,Severity.HIGH,rnsit.ac.in,,SSH,Default credentials may be in use for SSH service,"Username: admin, Password: admin",Change default credentials immediately,exploit
+FindingType.DEFAULT_CREDENTIALS,Severity.HIGH,rnsit.ac.in,,SSH,Default credentials may be in use for SSH service,"Username: root, Password: password",Change default credentials immediately,exploit
+FindingType.DEFAULT_CREDENTIALS,Severity.HIGH,rnsit.ac.in,,FTP,Default credentials may be in use for FTP service,"Username: anonymous, Password: ",Change default credentials immediately,exploit
+FindingType.DEFAULT_CREDENTIALS,Severity.HIGH,rnsit.ac.in,,HTTP,Default credentials may be in use for HTTP service,"Username: admin, Password: admin",Change default credentials immediately,exploit
+FindingType.DEFAULT_CREDENTIALS,Severity.HIGH,rnsit.ac.in,,RDP,Default credentials may be in use for RDP service,"Username: administrator, Password: password",Change default credentials immediately,exploit
+FindingType.EXPLOIT_SUCCESS,Severity.CRITICAL,rnsit.ac.in,,,Simulated successful exploitation of EternalBlue (MS17-010),"Exploit: EternalBlue (MS17-010), Description: SMB vulnerability in Windows systems",Apply security patches and implement proper security controls,exploit
+FindingType.EXPLOIT_FAILED,Severity.INFO,rnsit.ac.in,,,Simulated failed exploitation of Heartbleed (CVE-2014-0160),"Exploit: Heartbleed (CVE-2014-0160), Description: OpenSSL vulnerability",Vulnerability may still exist but exploit failed,exploit
+FindingType.EXPLOIT_SUCCESS,Severity.HIGH,rnsit.ac.in,,,Simulated successful exploitation of Shellshock (CVE-2014-6271),"Exploit: Shellshock (CVE-2014-6271), Description: Bash vulnerability",Apply security patches and implement proper security controls,exploit

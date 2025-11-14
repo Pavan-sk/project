@@ -1,0 +1,139 @@
+# AutoPentest Sample Configuration
+# This file demonstrates the configuration options available
+
+project_name: "Sample Penetration Test"
+safe_mode: true
+
+# Global settings
+global_timeout: 600  # 10 minutes
+max_threads: 20
+output_dir: "./results"
+
+# Network settings
+proxy: null  # "http://proxy:8080" if needed
+user_agent: "AutoPentest/1.0"
+
+# Credentials (if needed for authenticated testing)
+credentials:
+  admin: "password123"
+  test_user: "testpass"
+
+# Reconnaissance configuration
+recon:
+  passive: true
+  active: false
+  subdomain_enumeration: true
+  port_scanning: true
+  service_detection: true
+  
+  # Tool-specific configurations
+  tools:
+    nmap:
+      enabled: true
+      timeout: 300
+      threads: 10
+      custom_args: []
+      output_format: "xml"
+    
+    amass:
+      enabled: true
+      timeout: 600
+      threads: 5
+      custom_args: ["-passive"]
+      output_format: "json"
+    
+    theharvester:
+      enabled: true
+      timeout: 300
+      threads: 5
+      custom_args: []
+      output_format: "json"
+
+# Vulnerability scanning configuration
+scan:
+  scan_type: "quick"  # quick, full, custom
+  web_vulnerabilities: true
+  network_vulnerabilities: true
+  custom_checks:
+    - "ssl_tls_check"
+    - "header_security_check"
+    - "open_redirect_check"
+  
+  # Tool-specific configurations
+  tools:
+    nikto:
+      enabled: true
+      timeout: 600
+      threads: 5
+      custom_args: ["-Format", "xml"]
+      output_format: "xml"
+    
+    sqlmap:
+      enabled: true
+      timeout: 900
+      threads: 3
+      custom_args: ["--batch", "--random-agent"]
+      output_format: "json"
+    
+    xsstrike:
+      enabled: true
+      timeout: 300
+      threads: 5
+      custom_args: []
+      output_format: "json"
+    
+    gobuster:
+      enabled: true
+      timeout: 600
+      threads: 10
+      custom_args: ["-x", "php,html,txt"]
+      output_format: "txt"
+
+# Exploitation configuration
+exploit:
+  mode: "safe"  # safe, simulation, active
+  allowed_exploits:
+    - "ms17-010"
+    - "heartbleed"
+  forbidden_exploits:
+    - "eternalblue"
+  
+  # Tool-specific configurations
+  tools:
+    metasploit:
+      enabled: true
+      timeout: 1200
+      threads: 3
+      custom_args: []
+      output_format: "json"
+    
+    hydra:
+      enabled: true
+      timeout: 600
+      threads: 10
+      custom_args: []
+      output_format: "txt"
+
+# Post-exploitation configuration
+post_exploit:
+  privilege_escalation: false
+  lateral_movement: false
+  data_exfiltration: false
+  persistence: false
+  
+  # Tool-specific configurations
+  tools:
+    custom:
+      enabled: true
+      timeout: 300
+      threads: 5
+      custom_args: []
+      output_format: "json"
+
+# Reporting configuration
+report:
+  format: ["html", "json", "csv"]
+  include_raw_output: true
+  include_screenshots: true
+  severity_filter: ["high", "medium", "low"]
+  template_path: null  # Path to custom template if needed
